@@ -9,7 +9,7 @@ const cors = require("cors");
 app.use(cors());
 
 // Stream Facebook video directly to client
-app.get("/api/fb", async (req, res) => {
+app.get("/fb", async (req, res) => {
   const video = req.query.video;
 
   try {
@@ -34,7 +34,7 @@ app.get("/api/fb", async (req, res) => {
 });
 
 // Instagram API (no changes needed for direct download)
-app.get("/api/insta", async (req, res) => {
+app.get("/insta", async (req, res) => {
   const link = req.query.link;
   let resData = await idl(link);
   res.json(resData);
