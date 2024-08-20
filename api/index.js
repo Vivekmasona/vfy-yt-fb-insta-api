@@ -2,41 +2,38 @@ const express = require("express");
 const app = express();
 const port = 3000;
 
-// Facebook
 const getFBInfo = require("@xaviabot/fb-downloader");
-
-// Instagram
 const idl = require("i-downloader");
-
-// CORS Policy
 const cors = require("cors");
+
 app.use(cors());
 
-// functions
-async function printFBInfo(video) {
-  try {
-    const result = await getFBInfo(video);
-    return result;
-    // console.log("Result:", result);
-  } catch (error) {
-    console.log("Error:", error);
-  }
-}
-
-// Test API
-app.get("/api", (req, res) => {
-  res.send("Hello Video Downloader API !");
-});
-
-// Facebook API
+// Stream Facebook video directly to client
 app.get("/api/fb", async (req, res) => {
   const video = req.query.video;
-  // console.log(video);
-  const resData = await printFBInfo(video);
-  res.json(resData);
+
+  try {
+    const result = await getFBInfo(video);
+
+    if (result && result.download) {
+      const videoUrl = result.download.hd || result.download.sd; // Prefer HD if available
+
+      res.header("Content-Disposition", 'attachment; filename="video.mp4"');
+      res.header("Content-Type", "video/mp4");
+
+      // Stream the video to the client
+      const response = await fetch(videoUrl);
+      response.body.pipe(res);
+    } else {
+      res.status(404).send("Video not found or could not be downloaded.");
+    }
+  } catch (error) {
+    console.error("Error downloading Facebook video:", error);
+    res.status(500).send("Error processing your request.");
+  }
 });
 
-// Instagram API
+// Instagram API (no changes needed for direct download)
 app.get("/api/insta", async (req, res) => {
   const link = req.query.link;
   let resData = await idl(link);
